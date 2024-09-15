@@ -4,6 +4,42 @@ use std::{self, io::BufRead, process::ExitCode};
 mod asciinum;
 use asciinum::*;
 
+const CLI_HELP_TEXT: &str = r##"
+Reads numbers from stdin & expresses them with ASCII characters.
+
+Usage: asciinum {-h,--help}
+       asciinum [RADIXOPT]
+
+RADIXOPT: You can change what characters will be used for representing numbers
+ with ASCII characters. This can be done with this argument. This option always
+ needs to be 3 characters long and order of letters are significant.
+
+ First character determines symbols; can be one of these: {a,u,d}
+ * a -> all: every non-alphanumeric character in ASCII table (no control codes)
+          corpus => !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+ * u -> unix safe: same as `a` but `/` character omitted
+          corpus => !"#$%&'()*+,-.:;<=>?@[\]^_`{|}~
+ * d -> disabled: there will be no symbols in output
+
+ Second character determines numbers; can be one of these: {a,d}
+ * a -> all: every numeric character in ASCII table
+          corpus => 0123456789
+ * d -> disabled: there will be no numbers in output
+
+ Third character determines letters; can be one of these: {i,s,o}
+ * i -> insensitive: every lowercase alphabetical character in ASCII table
+          corpus => abcdefghijklmnopqrstuvwxyz
+ * s -> sensitive: same as `i` but includes uppercase characters as well.
+        starts with uppercase letters.
+          corpus => ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+ * o -> ordered: same as `s` but different ordering
+          corpus => AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz
+
+ These three choices of you made will be merged in the same order:
+   [symbols][characters][letters]
+ and generate radix (digits) for output numbers.
+"##;
+
 /// Parses radix settings program argument and returns
 /// [`asciinum::RadixSettings`]. If encounters with an error, it returns error
 /// message as String.
@@ -52,7 +88,7 @@ fn main() -> ExitCode {
         }
     }
     if argv.iter().any(|arg| arg == "-h" || arg == "--help") {
-        println!("help string");
+        println!("{}", CLI_HELP_TEXT.trim());
         return ExitCode::SUCCESS;
     }
     if argv.len() > 1 {

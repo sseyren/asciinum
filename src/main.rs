@@ -77,6 +77,7 @@ fn main() -> ExitCode {
             RadixLetters::SensitiveOrdered,
         ),
     };
+    let converter = AsciiConverter::new(&settings);
 
     let mut exit_code = ExitCode::SUCCESS;
     let mut stdin = std::io::stdin().lock();
@@ -95,7 +96,7 @@ fn main() -> ExitCode {
                 match str::from_utf8(btrim) {
                     Ok(line) => match line.parse::<u128>() {
                         Ok(number) => {
-                            println!("{}", convert_to_ascii(number, &settings));
+                            println!("{}", converter.convert(number));
                         }
                         Err(err) => {
                             eprintln!("couldn't parse as integer `{}`: {}", line, err);

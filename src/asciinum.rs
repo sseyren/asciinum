@@ -106,22 +106,43 @@ impl Iterator for BaseConvertIter {
     }
 }
 
-pub fn convert_to_ascii(decimal: u128, settings: &RadixSettings) -> String {
-    let corpus = settings.corpus();
-    let number: String = BaseConvertIter::new(
-        decimal,
-        NonZeroUsize::new(corpus.len()).expect("we know that corpus.len() is > 0"),
-    )
-    .map(|digit| {
-        corpus
-            .chars()
-            .nth(digit)
-            .expect("corpus.len() will be always bigger than digit itself")
-    })
-    .collect();
-    // it's okay to use .rev() here becase we know that every character in this
-    // string is an ASCII character
-    number.chars().rev().collect()
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct AsciiConverter {
+    corpus: String,
+}
+
+impl AsciiConverter {
+    pub fn new(settings: &RadixSettings) -> Self {
+        Self {
+            corpus: settings.corpus(),
+        }
+    }
+    /// Does decimal to ascii numbers conversion.
+    ///
+    /// ```
+    /// let converter = AsciiConverter::new(&RadixSettings::new(
+    ///     RadixSymbols::Disabled,
+    ///     RadixNumbers::Disabled,
+    ///     RadixLetters::Insensitive,
+    /// ));
+    /// assert_eq!(converter.convert(123), "et");
+    /// ```
+    pub fn convert(&self, decimal: u128) -> String {
+        let number: String = BaseConvertIter::new(
+            decimal,
+            NonZeroUsize::new(self.corpus.len()).expect("we know that corpus.len() is > 0"),
+        )
+        .map(|digit| {
+            self.corpus
+                .chars()
+                .nth(digit)
+                .expect("corpus.len() will be always bigger than digit itself")
+        })
+        .collect();
+        // it's okay to use .rev() here becase we know that every character in this
+        // string is an ASCII character
+        number.chars().rev().collect()
+    }
 }
 
 pub trait TrimAsciiControlCharacters {
@@ -194,235 +215,193 @@ mod tests {
     #[test]
     fn test_convert_to_ascii() {
         assert_eq!(
-            convert_to_ascii(
-                0,
-                &RadixSettings::new(
-                    RadixSymbols::Disabled,
-                    RadixNumbers::Disabled,
-                    RadixLetters::Insensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::Disabled,
+                RadixNumbers::Disabled,
+                RadixLetters::Insensitive,
+            ))
+            .convert(0),
             "a"
         );
         assert_eq!(
-            convert_to_ascii(
-                0,
-                &RadixSettings::new(
-                    RadixSymbols::Disabled,
-                    RadixNumbers::All,
-                    RadixLetters::Insensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::Disabled,
+                RadixNumbers::All,
+                RadixLetters::Insensitive,
+            ))
+            .convert(0),
             "0"
         );
         assert_eq!(
-            convert_to_ascii(
-                0,
-                &RadixSettings::new(
-                    RadixSymbols::All,
-                    RadixNumbers::All,
-                    RadixLetters::Insensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::All,
+                RadixNumbers::All,
+                RadixLetters::Insensitive,
+            ))
+            .convert(0),
             "!"
         );
 
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::All,
-                    RadixNumbers::All,
-                    RadixLetters::Insensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::All,
+                RadixNumbers::All,
+                RadixLetters::Insensitive,
+            ))
+            .convert(u128::MAX),
             r##"")+'4/yf`dygv?{w*kdvnj"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::UnixSafe,
-                    RadixNumbers::All,
-                    RadixLetters::Insensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::UnixSafe,
+                RadixNumbers::All,
+                RadixLetters::Insensitive,
+            ))
+            .convert(u128::MAX),
             r##""4{173{}g^z'ikw8_<,~g@"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::Disabled,
-                    RadixNumbers::All,
-                    RadixLetters::Insensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::Disabled,
+                RadixNumbers::All,
+                RadixLetters::Insensitive,
+            ))
+            .convert(u128::MAX),
             r##"f5lxx1zz5pnorynqglhzmsp33"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::All,
-                    RadixNumbers::Disabled,
-                    RadixLetters::Insensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::All,
+                RadixNumbers::Disabled,
+                RadixLetters::Insensitive,
+            ))
+            .convert(u128::MAX),
             r##"~d{gxl\c&<]zql%l/"t@>v"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::UnixSafe,
-                    RadixNumbers::Disabled,
-                    RadixLetters::Insensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::UnixSafe,
+                RadixNumbers::Disabled,
+                RadixLetters::Insensitive,
+            ))
+            .convert(u128::MAX),
             r##"oa-q&ov]c>q%`n:?[wd'*$"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::Disabled,
-                    RadixNumbers::Disabled,
-                    RadixLetters::Insensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::Disabled,
+                RadixNumbers::Disabled,
+                RadixLetters::Insensitive,
+            ))
+            .convert(u128::MAX),
             r##"cdhefomrsrxetmsvhtomcungjkbv"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::All,
-                    RadixNumbers::All,
-                    RadixLetters::Sensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::All,
+                RadixNumbers::All,
+                RadixLetters::Sensitive,
+            ))
+            .convert(u128::MAX),
             r##",#7zGM_d_e&[bar**m,."##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::UnixSafe,
-                    RadixNumbers::All,
-                    RadixLetters::Sensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::UnixSafe,
+                RadixNumbers::All,
+                RadixLetters::Sensitive,
+            ))
+            .convert(u128::MAX),
             r##".GB;(nA-8hN0iu?pLo4c"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::Disabled,
-                    RadixNumbers::All,
-                    RadixLetters::Sensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::Disabled,
+                RadixNumbers::All,
+                RadixLetters::Sensitive,
+            ))
+            .convert(u128::MAX),
             r##"7n42DGM5Tflk9n8mt7Fhc7"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::All,
-                    RadixNumbers::Disabled,
-                    RadixLetters::Sensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::All,
+                RadixNumbers::Disabled,
+                RadixLetters::Sensitive,
+            ))
+            .convert(u128::MAX),
             r##""*EwscH.T$Oa?x^]GS@f$"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::UnixSafe,
-                    RadixNumbers::Disabled,
-                    RadixLetters::Sensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::UnixSafe,
+                RadixNumbers::Disabled,
+                RadixLetters::Sensitive,
+            ))
+            .convert(u128::MAX),
             r##""D`<#<C\nsD>`T%lg._?T"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::Disabled,
-                    RadixNumbers::Disabled,
-                    RadixLetters::Sensitive,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::Disabled,
+                RadixNumbers::Disabled,
+                RadixLetters::Sensitive,
+            ))
+            .convert(u128::MAX),
             r##"GBIWTpZqojFGQPQPXtvbJAv"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::All,
-                    RadixNumbers::All,
-                    RadixLetters::SensitiveOrdered,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::All,
+                RadixNumbers::All,
+                RadixLetters::SensitiveOrdered,
+            ))
+            .convert(u128::MAX),
             r##",#7zDG_o_P&[nNv**T,."##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::UnixSafe,
-                    RadixNumbers::All,
-                    RadixLetters::SensitiveOrdered,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::UnixSafe,
+                RadixNumbers::All,
+                RadixLetters::SensitiveOrdered,
+            ))
+            .convert(u128::MAX),
             r##".Da;(tA-8qg0RX?ufU4O"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::Disabled,
-                    RadixNumbers::All,
-                    RadixLetters::SensitiveOrdered,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::Disabled,
+                RadixNumbers::All,
+                RadixLetters::SensitiveOrdered,
+            ))
+            .convert(u128::MAX),
             r##"7t42bDG5jpsS9t8Tw7cqO7"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::All,
-                    RadixNumbers::Disabled,
-                    RadixLetters::SensitiveOrdered,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::All,
+                RadixNumbers::Disabled,
+                RadixLetters::SensitiveOrdered,
+            ))
+            .convert(u128::MAX),
             r##""*CYWOd.j$HN?y^]DJ@p$"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::UnixSafe,
-                    RadixNumbers::Disabled,
-                    RadixLetters::SensitiveOrdered,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::UnixSafe,
+                RadixNumbers::Disabled,
+                RadixLetters::SensitiveOrdered,
+            ))
+            .convert(u128::MAX),
             r##""b`<#<B\tWb>`j%sQ._?j"##
         );
         assert_eq!(
-            convert_to_ascii(
-                u128::MAX,
-                &RadixSettings::new(
-                    RadixSymbols::Disabled,
-                    RadixNumbers::Disabled,
-                    RadixLetters::SensitiveOrdered,
-                ),
-            ),
+            AsciiConverter::new(&RadixSettings::new(
+                RadixSymbols::Disabled,
+                RadixNumbers::Disabled,
+                RadixLetters::SensitiveOrdered,
+            ))
+            .convert(u128::MAX),
             r##"DaELjumVUrcDIhIhlwxneAx"##
         );
     }

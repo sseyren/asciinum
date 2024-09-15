@@ -5,6 +5,7 @@ use constcat;
 const SYMBOLS: &str = r##"!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"##;
 const SYMBOLS_UNIXSAFE: &str = r##"!"#$%&'()*+,-.:;<=>?@[\]^_`{|}~"##;
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum RadixSymbols {
     All,
     /// excludes '/'
@@ -14,6 +15,7 @@ pub enum RadixSymbols {
 
 const NUMBERS: &str = "0123456789";
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum RadixNumbers {
     All,
     Disabled,
@@ -24,6 +26,7 @@ const LETTERS_LOWERCASE: &str = "abcdefghijklmnopqrstuvwxyz";
 const LETTERS_CONCAT: &str = constcat::concat!(LETTERS_UPPERCASE, LETTERS_LOWERCASE);
 const LETTERS_ORDERED: &str = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz";
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum RadixLetters {
     /// \[a-z\]
     Insensitive,
@@ -33,6 +36,7 @@ pub enum RadixLetters {
     SensitiveOrdered,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct RadixSettings {
     pub symbols: RadixSymbols,
     pub numbers: RadixNumbers,

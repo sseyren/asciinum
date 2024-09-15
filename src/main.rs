@@ -4,6 +4,9 @@ use std::{self, io::BufRead, process::ExitCode};
 mod asciinum;
 use asciinum::*;
 
+/// Parses radix settings program argument and returns
+/// [`asciinum::RadixSettings`]. If encounters with an error, it returns error
+/// message as String.
 fn parse_radix_arg(arg: &str) -> Result<RadixSettings, String> {
     if let (Some(s), Some(n), Some(l), None) = (
         arg.chars().nth(0),
@@ -122,4 +125,57 @@ fn main() -> ExitCode {
         buffer.clear()
     }
     exit_code
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_radix_arg() {
+        assert!(parse_radix_arg("a").is_err());
+        assert!(parse_radix_arg("aa").is_err());
+        assert!(parse_radix_arg("aaix").is_err());
+
+        assert!(parse_radix_arg("asd").is_err());
+        assert!(parse_radix_arg("efg").is_err());
+        assert!(parse_radix_arg("haha\r\nhehe").is_err());
+
+        assert!(parse_radix_arg("iua").is_err());
+        assert!(parse_radix_arg("suu").is_err());
+        assert!(parse_radix_arg("oud").is_err());
+
+        assert_eq!(
+            parse_radix_arg("aai").unwrap(),
+            RadixSettings::new(
+                RadixSymbols::All,
+                RadixNumbers::All,
+                RadixLetters::Insensitive
+            )
+        );
+        assert_eq!(
+            parse_radix_arg("udi").unwrap(),
+            RadixSettings::new(
+                RadixSymbols::UnixSafe,
+                RadixNumbers::Disabled,
+                RadixLetters::Insensitive
+            )
+        );
+        assert_eq!(
+            parse_radix_arg("das").unwrap(),
+            RadixSettings::new(
+                RadixSymbols::Disabled,
+                RadixNumbers::All,
+                RadixLetters::Sensitive
+            )
+        );
+        assert_eq!(
+            parse_radix_arg("ado").unwrap(),
+            RadixSettings::new(
+                RadixSymbols::All,
+                RadixNumbers::Disabled,
+                RadixLetters::SensitiveOrdered
+            )
+        );
+    }
 }

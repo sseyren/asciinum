@@ -38,6 +38,8 @@ RADIXOPT: You can change what characters will be used for representing numbers
  These three choices of you made will be merged in the same order:
    [symbols][characters][letters]
  and generate radix (digits) for output numbers.
+
+ Default value for RADIXOPT is: `dao`.
 "##;
 
 /// Parses radix settings program argument and returns

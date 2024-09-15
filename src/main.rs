@@ -8,12 +8,10 @@ use asciinum::*;
 /// [`asciinum::RadixSettings`]. If encounters with an error, it returns error
 /// message as String.
 fn parse_radix_arg(arg: &str) -> Result<RadixSettings, String> {
-    if let (Some(s), Some(n), Some(l), None) = (
-        arg.chars().nth(0),
-        arg.chars().nth(1),
-        arg.chars().nth(2),
-        arg.chars().nth(3),
-    ) {
+    let mut chars = arg.chars();
+    if let (Some(s), Some(n), Some(l), None) =
+        (chars.next(), chars.next(), chars.next(), chars.next())
+    {
         let symbols = match s {
             'a' => RadixSymbols::All,
             'u' => RadixSymbols::UnixSafe,
@@ -53,11 +51,7 @@ fn main() -> ExitCode {
             }
         }
     }
-    if argv
-        .iter()
-        .find(|&arg| arg == "-h" || arg == "--help")
-        .is_some()
-    {
+    if argv.iter().any(|arg| arg == "-h" || arg == "--help") {
         println!("help string");
         return ExitCode::SUCCESS;
     }

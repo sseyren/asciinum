@@ -1,7 +1,5 @@
 use std::num::NonZeroUsize;
 
-use constcat;
-
 const SYMBOLS: &str = r##"!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"##;
 const SYMBOLS_UNIXSAFE: &str = r##"!"#$%&'()*+,-.:;<=>?@[\]^_`{|}~"##;
 
